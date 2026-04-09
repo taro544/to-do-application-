@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Görevlerim</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f0ea; 
+      color: #111;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      background-color: #ffffff;
+      width: 100%;
+      max-width: 500px;
+      padding: 30px;
+      border: 3px solid #111;
+      border-radius: 12px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 25px;
+      font-size: 28px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      flex-shrink: 0;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-shrink: 0;
+    }
+
+    .input-row input {
+      flex: 1;
+      padding: 12px;
+      border: 2px solid #111;
+      border-radius: 8px;
+      font-size: 16px;
+      font-family: inherit;
+    }
+
+    .input-row input:focus {
+      outline: none;
+      background-color: #fbf8cc; 
+    }
+
+    .input-row button {
+      padding: 12px 20px;
+      background-color: #bde0fe; 
+      color: #111;
+      border: 2px solid #111;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 16px;
+      transition: all 0.1s;
+    }
+
+
+
+
+    .search-row {
+      margin-bottom: 25px;
+      flex-shrink: 0;
+    }
+
+    .search-row input {
+      width: 100%;
+      padding: 10px;
+      border: 2px dashed #111;
+      border-radius: 8px;
+      font-size: 14px;
+      background-color: transparent;
+    }
+
+    .search-row input:focus {
+      outline: none;
+      border-style: solid;
+    }
+
+    ul {
+      list-style-type: none;
+      overflow-y: auto;
+      flex: 1;
+      padding-right: 8px;
+    }
+
+    ul::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ul::-webkit-scrollbar-track {
+      background: #f4f0ea;
+      border-radius: 10px;
+    }
+
+    ul::-webkit-scrollbar-thumb {
+      background: #111;
+      border-radius: 10px;
+    }
+
+    li {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      background-color: #fff;
+      border: 2px solid #111;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    li input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: #111;
+    }
+
+    .todo-text {
+      flex: 1;
+      margin-left: 12px;
+      font-size: 16px;
+      font-weight: 500;
+    }
+    .todo-text.done {
+      text-decoration: line-through;
+      color: #888;
+      font-style: italic;
+    }
+
+    .btn-edit, .btn-delete {
+      padding: 6px 12px;
+      margin-left: 8px;
+      border: 2px solid #111;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 13px;
+      transition: all 0.1s;
+      color: #111;
+    }
+
+    .btn-edit { background-color: #ffc8dd; }
+    .btn-delete { background-color: #ffadad;  }
+
+
+    .edit-input {
+      flex: 1;
+      padding: 6px;
+      margin: 0 10px;
+      border: 2px solid #111;
+      border-radius: 4px;
+      font-family: inherit;
+    }
+
+    .empty {
+      text-align: center;
+      color: #555;
+      margin-top: 25px;
+      font-weight: bold;
+      border: 2px dashed #ccc;
+      padding: 20px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+
+
+
+<div class="container">
+  <h1>Görevlerim</h1>
+
+  <div class="input-row">
+    <input type="text" id="taskInput" placeholder="Görev ekle" />
+    <button onclick="addTask()">Ekle</button>
+  </div>
+
+  <div class="search-row">
+    <input type="text" id="searchInput" placeholder="Görevler arasında ara" oninput="renderList()" />
+  </div>
+
+  <ul id="taskList"></ul>
+  <div class="empty" id="emptyMsg" style="display:none;">
+    Herhangi bir görev bulunamadı.
+  </div>
+</div>
+
+<script>
+  let tasks = JSON.parse(localStorage.getItem("tasks") || "[]");
+
+  function saveTasks() {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  }
+
+  function addTask() {
+    const input = document.getElementById("taskInput");
+    const text = input.value.trim();
+
+    if (text === "") return;
+
+    tasks.push({
+      id: Date.now(),
+      text: text,
+      done: false
+    });
+
+    input.value = "";
+    saveTasks();
+    renderList();
+  }
+
+  document.getElementById("taskInput").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") addTask();
+  });
+
+  function toggleDone(id) {
+    const task = tasks.find(t => t.id === id);
+    if (task) {
+      task.done = !task.done;
+      saveTasks();
+      renderList();
+    }
+  }
+
+  function deleteTask(id) {
+    tasks = tasks.filter(t => t.id !== id);
+    saveTasks();
+    renderList();
+  }
+
+  function startEdit(id) {
+    const li = document.querySelector(`li[data-id="${id}"]`);
+    const task = tasks.find(t => t.id === id);
+    if (!li || !task) return;
+
+    const textEl = li.querySelector(".todo-text");
+    const editBtn = li.querySelector(".btn-edit");
+
+    const input = document.createElement("input");
+    input.className = "edit-input";
+    input.value = task.text;
+    li.replaceChild(input, textEl);
+
+    editBtn.textContent = "Kaydet";
+    editBtn.onclick = () => saveEdit(id, input.value);
+
+    input.focus();
+    input.addEventListener("keydown", function(e) {
+      if (e.key === "Enter") saveEdit(id, input.value);
+      if (e.key === "Escape") renderList();
+    });
+  }
+
+  function saveEdit(id, newText) {
+    newText = newText.trim();
+    if (newText === "") return;
+    const task = tasks.find(t => t.id === id);
+    if (task) {
+      task.text = newText;
+      saveTasks();
+      renderList();
+    }
+  }
+
+  function renderList() {
+    const ul = document.getElementById("taskList");
+    const emptyMsg = document.getElementById("emptyMsg");
+    const query = document.getElementById("searchInput").value.toLowerCase();
+
+    ul.innerHTML = "";
+
+    const filtered = tasks.filter(t => t.text.toLowerCase().includes(query));
+
+    if (filtered.length === 0) {
+      emptyMsg.style.display = "block";
+    } else {
+      emptyMsg.style.display = "none";
+    }
+
+    filtered.forEach(function(task) {
+      const li = document.createElement("li");
+      li.setAttribute("data-id", task.id);
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = task.done;
+      checkbox.onchange = () => toggleDone(task.id);
+
+      const span = document.createElement("span");
+      span.className = "todo-text" + (task.done ? " done" : "");
+      span.textContent = task.text;
+
+      const editBtn = document.createElement("button");
+      editBtn.className = "btn-edit";
+      editBtn.textContent = "Düzenle";
+      editBtn.onclick = () => startEdit(task.id);
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "btn-delete";
+      deleteBtn.textContent = "Sil";
+      deleteBtn.onclick = () => deleteTask(task.id);
+
+      li.appendChild(checkbox);
+      li.appendChild(span);
+      li.appendChild(editBtn);
+      li.appendChild(deleteBtn);
+
+      ul.appendChild(li);
+    });
+  }
+
+  renderList();
+</script>
+
+</body>
+</html>
